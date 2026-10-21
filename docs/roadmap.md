@@ -2,7 +2,8 @@
 
 状态说明：✅ 完成 · 🚧 进行中 · 📋 计划中 · 💡 想法，未排期
 
-当前：**v0.2.0 — Phase 0 完成，简历可解析成 `profile.json`。填表链路未实现。**
+当前：**v0.3.0 — Phase 0 完成；`apply` 端到端可用（适配器 → 填表 → 回读校验 → 停在提交前 → 台账），
+已在自制测试表单上验证。真实站点适配器仍缺目标岗位 URL，未验证的部分不声称完成。**
 
 ---
 
@@ -23,19 +24,21 @@
 
 **验收**：真实简历跑 `jobapply profile build`，非空字段准确率 ≥ 95%；身份证、手机、毕业年月零错误。
 
-> 当前 128 个测试通过。在构造样本上字段级准确率 100%，但样本规模不足以支撑"真实简历准确率"的结论——
+> 当前 204 个测试通过。在构造样本上字段级准确率 100%，但样本规模不足以支撑"真实简历准确率"的结论——
 > 缺口在于脱敏样本数量，不在规则覆盖。
 
 ## Phase 1 · 打通一个站点
 
 目标：端到端填完一个真实岗位，停在提交前。
 
-- [ ] 📋 `engine/browser.py` — 会话管理、`storage_state` 登录态持久化、headed 模式
-- [ ] 📋 `engine/locator.py` — 四级定位策略（文本 → aria → name → css）
-- [ ] 📋 `engine/actions.py` — 动作原语：`fill_text` / `fill_rich` / `custom_select` / `cascade_select` / `typeahead` / `pick_date` / `radio` / `checkbox` / `upload` / `repeat_block`
-- [ ] 📋 `engine/verify.py` — 回读校验、差异报告
-- [ ] 📋 `engine/artifacts.py` — 截图、DOM 快照、运行日志
-- [ ] 📋 `adapters/sites/moka.yaml` — Moka 适配器（第一个，结构最规整）
+- [x] ✅ `engine/browser.py` — 会话管理、`storage_state` 登录态持久化、headed 模式
+- [x] ✅ `engine/locator.py` — 四级定位策略（文本 → aria → name → css）
+- [x] ✅ `engine/actions.py` — 动作原语：`fill_text` / `fill_rich` / `custom_select` / `radio` / `checkbox` / `upload`（`cascade_select` / `typeahead` / `pick_date` / `repeat_block` 未做）
+- [x] ✅ `engine/runner.py` — apply 编排：步骤就绪等待、点路径取值（含列表索引与 default 回退）、回读校验、提交按钮检测（只检测不点击）、截图
+- [x] ✅ `engine/verify.py` 的职责并入 `runner.py`（回读校验 + 差异报告）
+- [x] ✅ `ledger/recorder.py` — JSONL 投递台账（SQLite 迁移排在 Phase 3）
+- [ ] 📋 `engine/artifacts.py` — 截图已有（runner 内），DOM 快照未做
+- [ ] 📋 `adapters/sites/moka.yaml` — Moka 适配器（第一个，结构最规整）——**待用户提供目标岗位 URL**
 - [ ] 📋 `tests/fixtures/moka-*.html` — 脱敏页面快照
 - [ ] 📋 验证码中断处理：检测到验证元素时暂停，终端提示人工完成后回车继续
 
@@ -45,8 +48,8 @@
 
 目标：新增站点只写 YAML，不改 Python。
 
-- [ ] 📋 `adapters/base.py` — Adapter 抽象、YAML 加载与校验、locator 检查
-- [ ] 📋 `adapters/registry.py` — URL 路由到适配器
+- [x] ✅ `adapters/base.py` — Adapter 抽象、YAML 加载与校验、locator 检查
+- [x] ✅ `adapters/registry.py` — URL 路由到适配器
 - [ ] 📋 把 Phase 1 里所有硬编码外移到 YAML
 - [ ] 📋 `adapters/sites/beisen.yaml` — 北森适配器
 - [ ] 📋 `adapters/sites/nowcoder.yaml` — 牛客适配器

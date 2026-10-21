@@ -28,9 +28,16 @@ def test_cli_help_works() -> None:
 
 
 def test_cli_reports_unimplemented_commands_gracefully() -> None:
-    result = runner.invoke(app, ["status"])
+    # apply / status 已实现；adapter 调试命令仍在路线图里，应优雅地提示未实现
+    result = runner.invoke(app, ["adapter", "list"])
     assert result.exit_code == 1
     assert "尚未实现" in result.output
+
+
+def test_status_command_reads_empty_ledger() -> None:
+    result = runner.invoke(app, ["status"])
+    assert result.exit_code == 0
+    assert "台账" in result.output
 
 
 def test_example_profile_is_valid_json() -> None:

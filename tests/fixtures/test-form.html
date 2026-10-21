@@ -88,6 +88,11 @@
     <button type="button" onclick="document.getElementById('resume-file').click()">上传简历</button>
   </div>
 
+  <!-- 提交按钮：apply 必须停在这里。onclick 只做「已提交」标记，供测试断言从未被点 -->
+  <div class="field">
+    <button id="submit-btn" type="submit" onclick="document.body.dataset.submitted='1'">确认投递</button>
+  </div>
+
   <script>
     var trig = document.getElementById('city-trigger');
     var opts = document.getElementById('city-options');

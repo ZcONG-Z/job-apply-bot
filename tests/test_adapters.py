@@ -17,7 +17,7 @@ def test_load_adapter() -> None:
     adapter = load_adapter(FIXTURES / "test-site.yaml")
     assert adapter.site == "test-site"
     assert len(adapter.steps) == 1
-    assert len(adapter.steps[0].fields) == 10
+    assert len(adapter.steps[0].fields) == 11
     assert adapter.url_patterns == ["*.example.test/*"]
 
 

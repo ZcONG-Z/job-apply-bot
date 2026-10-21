@@ -7,21 +7,31 @@
 
 ## [Unreleased]
 
-### Fixed
+## [0.3.0] - 2026-10-22
 
-- **`profile review` 修改日期字段会写入错误类型**：直接 `setattr` 到 pydantic 模型上，
-  而 pydantic 默认不在属性赋值时校验，`birth_date` 会被塞进字符串（序列化时还会报警告）。
-  改为先在纯 dict 上改值、再整体校验一次，类型转换与约束统一生效；
-  校验不通过则不写回文件，并列出全部错误
-- **绩点解析把日期当成绩点**：`2021/9 - 2025/6` 会被识别成 `1.0/9.0`，导致完全没写绩点的简历
-  凭空出现一个绩点。现在要求分母是常见满分制（4 / 4.3 / 4.5 / 5 / 100）且分子不超过分母，
-  否则不认。这个 bug 是演示时用一份"排版随意"的简历发现的，单元测试没覆盖到
-- **教育经历的多项校验只报第一个错**：`model_validator` 遇到第一个问题就抛异常，
-  后面的检查跑不到。改为收集后一次报出，避免用户改一轮只发现一个错
+**填表链路打通：`jobapply apply` 端到端可用，永远停在提交前。**
 
 ### Added
 
-- `docs/implementation-notes.md`：Phase 0 的实现细节、设计取舍与实测修复记录
+- `engine/runner.py` — apply 编排：步骤就绪等待（`text=` / `css=` 前缀）、点路径取值
+  （支持 `educations.0.degree` 列表索引与适配器 `default` 回退、布尔转 `"true"/"false"`）、
+  按字段类型的回读校验、提交按钮检测（**只检测不点击**）、全页截图
+- `ledger/recorder.py` — JSONL 投递台账：`record` / `read_all` / `summarize` / 重复 URL 检测；
+  只存路径与状态，不存字段内容
+- `jobapply apply <url>`：适配器解析（`--adapter` 显式指定或 URL 路由）→ 填表 → 报告（敏感字段脱敏，
+  `--debug` 显示完整值）→ 台账 → 停在提交前。`--headless` 供 CI 使用，默认开窗口供人工核对
+- `jobapply status`：查看投递台账与重复投递提醒
+- `FieldSpec.trigger`：自定义下拉的触发器 selector 进入适配器模型（此前被 `extra="ignore"` 静默丢弃）
+- `tests/test_apply.py` — 40 个用例：点路径取值、回读校验规则、端到端填表
+  （含「提交按钮被检测到且从未被点击」的铁律断言）、台账、CLI 子进程接线
+
+### Fixed
+
+- **自定义下拉定位失败**：纯 div 结构没有 input 元素，`fill_field` 开头的 `find_field`
+  直接抛 `FieldNotFoundError`。改为定位失败时退化为 `trigger` / `selector` 指向的元素
+- **复选框误点页面文字**：未配置 options 时 `_pick_option_text` 把值 `"true"` 当选项文案，
+  `set_checkbox` 误走 `set_radio` 去点文字 `"true"` 直到超时。改为仅在适配器显式配置
+  选项映射时才按文字勾选
 
 ## [0.2.0] - 2026-10-21
 
@@ -37,6 +47,7 @@
 - `resume/schema.py`：pydantic 数据模型与校验（身份证、手机号、月份格式、起止先后、绩点上限）
 - `profile build` / `profile validate` / `profile review` 三个命令实际可用
 - `scripts/make_sample_resume.py`：生成虚构样本简历（DOCX + PDF）
+- `docs/implementation-notes.md`：Phase 0 的实现细节、设计取舍与实测修复记录
 - 108 个新测试：`test_normalize.py`、`test_schema.py`、`test_parse.py`
 
 ### Fixed
@@ -45,6 +56,15 @@
 - 身份证末位小写 `x` 未转大写：脱敏字符集误含 `x/X`，导致校验被跳过
 - 公司名被截断（如"某某科技"）：正则懒惰量词 + 不当后缀导致，改为贪婪匹配
 - `【教育背景】` 等带装饰字符的小节标题无法识别
+- `profile review` 修改日期字段会写入错误类型：直接 `setattr` 到 pydantic 模型上，
+  而 pydantic 默认不在属性赋值时校验，`birth_date` 会被塞进字符串（序列化时还会报警告）。
+  改为先在纯 dict 上改值、再整体校验一次，类型转换与约束统一生效；
+  校验不通过则不写回文件，并列出全部错误
+- 绩点解析把日期当成绩点：`2021/9 - 2025/6` 会被识别成 `1.0/9.0`，导致完全没写绩点的简历
+  凭空出现一个绩点。现在要求分母是常见满分制（4 / 4.3 / 4.5 / 5 / 100）且分子不超过分母，
+  否则不认。这个 bug 是演示时用一份"排版随意"的简历发现的，单元测试没覆盖到
+- 教育经历的多项校验只报第一个错：`model_validator` 遇到第一个问题就抛异常，
+  后面的检查跑不到。改为收集后一次报出，避免用户改一轮只发现一个错
 
 ### Changed
 

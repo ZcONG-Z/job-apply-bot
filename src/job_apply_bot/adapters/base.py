@@ -35,6 +35,7 @@ class FieldSpec(BaseModel):
     required: bool = False
     name: str | None = None
     selector: str | None = None
+    trigger: str | None = None  # 自定义下拉的触发器 selector（页面上没有 input 时用）
     options: dict[str, str | list[str]] = Field(default_factory=dict)
     default: str | None = None
 
@@ -71,7 +72,11 @@ class Adapter(BaseModel):
         return [(step, field) for step in self.steps for field in step.fields]
 
     def missing_locators(self, page) -> list[str]:
-        """在给定页面上检查哪些必填字段定位不到，返回字段 key 列表。"""
+        """在给定页面上检查哪些必填字段定位不到，返回字段 key 列表。
+
+        自定义下拉（custom_select）允许退化为 ``trigger`` 指向的元素——
+        这类字段在页面上本来就没有 input，与 ``engine.runner`` 的定位规则保持一致。
+        """
         from job_apply_bot.engine.locator import FieldNotFoundError, find_field
 
         missing: list[str] = []
@@ -84,6 +89,12 @@ class Adapter(BaseModel):
                     selector=field.selector,
                 )
             except FieldNotFoundError:
+                if (
+                    field.type == "custom_select"
+                    and field.trigger
+                    and page.locator(field.trigger).count() > 0
+                ):
+                    continue
                 missing.append(field.key)
         return missing
 

@@ -11,12 +11,35 @@ steps:
       - {key: basic.name_cn, label: [姓名], type: text, required: true}
       - {key: contact.phone, label: [手机号码], type: text, required: true}
       - {key: basic.birth_date, label: [出生日期], type: date, required: true}
-      - {key: custom.self_intro, label: [自我评价], type: textarea}
-      - {key: custom.project_desc, label: [项目描述], type: contenteditable}
-      - {key: educations.0.degree, label: [最高学历], type: custom_select,
-         options: {bachelor: 本科, master: 硕士, phd: 博士}}
-      - {key: custom.city, label: [期望城市], type: custom_select, trigger: "#city-trigger",
-         options: {shanghai: 上海, beijing: 北京, shenzhen: 深圳}}
+      # 开放性问题在 profile 里通常为空，用 default 演示「取值回退」
+      - key: answers.self_intro
+        label: [自我评价]
+        type: textarea
+        default: "示例：做事踏实，热爱后端开发，实习期间独立负责过两个模块。"
+      - key: custom.project_desc
+        label: [项目描述]
+        type: contenteditable
+        default: "示例项目：分布式任务调度平台（Python/Go），负责调度核心与监控。"
+      # 原生 select：回读的是 option 的 value，与 profile 值直接比对
+      - key: educations.0.degree
+        label: [最高学历]
+        type: custom_select
+        options: {bachelor: 本科, master: 硕士, phd: 博士}
+      # 纯 div 自定义下拉：页面上没有 input，靠 trigger 退化定位；
+      # 演示列表索引取值：job_intent.target_city.0 = "上海"
+      - key: job_intent.target_city.0
+        label: [期望城市]
+        type: custom_select
+        trigger: "#city-trigger"
+        options: {shanghai: 上海, beijing: 北京, shenzhen: 深圳}
       - {key: basic.gender, label: [性别], type: radio, options: {male: 男, female: 女}}
       - {key: job_intent.accept_relocation, label: [可到岗], type: checkbox}
-      - {key: custom.resume, label: [简历附件], type: upload}
+      # 上传：值是相对 workdir 的路径，测试里 workdir 指向 fixtures 目录
+      - key: custom.resume
+        label: [简历附件]
+        type: upload
+        default: "sample-resume.pdf"
+      # 没有 default、profile 里也没有 → 演示「非必填跳过」路径
+      - key: answers.why_company
+        label: [为什么选择我们]
+        type: textarea

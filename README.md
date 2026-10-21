@@ -33,8 +33,9 @@
                                     ⏸  停在提交前
 ```
 
-> 上图是完整设计。其中**第一段已实现**（简历 → `profile.json`），后面填表部分只有设计文档。
-> 判断标准很简单：`jobapply apply` 现在会直接告诉你"尚未实现"。
+> 上图是完整设计。其中**前两段已实现**（简历 → `profile.json` → 按适配器填表 → 停在提交前），
+> 已在自制测试表单上端到端验证（204 个测试全过）。真实站点适配器（Moka / 北森 / 牛客）还在路线图里——
+> 没有目标岗位 URL 时无法验证的部分，不声称完成。
 
 ## 它做什么 / 不做什么
 
@@ -95,8 +96,8 @@ jobapply profile validate -f profile.json
 # 3. 逐项确认高风险字段（出生日期、身份证、学校、起止时间）
 jobapply profile review -f profile.json
 
-# 4. 填表（Phase 1，尚未实现）
-jobapply apply https://app.mokahr.com/campus_apply/xxx
+# 4. 填表（填完停在提交按钮前，绝不代点提交）
+jobapply apply https://app.mokahr.com/campus_apply/xxx --profile profile.json
 ```
 
 没有简历文件也能试：`python scripts/make_sample_resume.py --out tests/fixtures` 会生成一份虚构样本。
