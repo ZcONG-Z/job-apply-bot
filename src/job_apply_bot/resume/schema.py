@@ -157,10 +157,14 @@ class Education(_Base):
 
     @model_validator(mode="after")
     def _check_range_and_gpa(self) -> Education:
+        """一次报出全部问题，不要遇到第一个就中断——否则用户改一轮只发现一个错。"""
+        problems: list[str] = []
         if self.start and self.end and self.start > self.end:
-            raise ValueError(f"教育经历开始时间晚于结束时间：{self.start} > {self.end}")
+            problems.append(f"开始时间晚于结束时间：{self.start} > {self.end}")
         if self.gpa is not None and self.gpa_scale is not None and self.gpa > self.gpa_scale:
-            raise ValueError(f"绩点 {self.gpa} 超过满分制 {self.gpa_scale}")
+            problems.append(f"绩点 {self.gpa} 超过满分制 {self.gpa_scale}")
+        if problems:
+            raise ValueError("；".join(problems))
         return self
 
 

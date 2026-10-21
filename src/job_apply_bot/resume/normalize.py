@@ -140,6 +140,17 @@ def to_degree(text: str) -> Degree | None:
     return None
 
 
+# 常见的绩点满分制。分母不在此列的一律不认，否则 "2021/9"（日期）、
+# "12/180"（排名）都会被误判成绩点 —— 这个 bug 是演示时用一份没有绩点的简历发现的。
+_GPA_SCALES = (4.0, 4.3, 4.5, 5.0, 100.0)
+
+_RATIO = re.compile(r"(\d{1,3}(?:\.\d+)?)\s*/\s*(\d{1,3}(?:\.\d+)?)")
+
+_GPA_LABEL = re.compile(
+    r"(?:GPA|绩点|平均分|均分|平均成绩)[:：]?\s*(\d{1,3}(?:\.\d+)?)", re.IGNORECASE
+)
+
+
 def parse_gpa(text: str) -> tuple[float | None, float | None, str | None]:
     """解析绩点，返回 ``(gpa, gpa_scale, percent_text)``。
 
@@ -147,23 +158,22 @@ def parse_gpa(text: str) -> tuple[float | None, float | None, str | None]:
     (3.62, 4.0, None)
     >>> parse_gpa("平均分 85.5")
     (85.5, 100.0, None)
-    >>> parse_gpa("前 15%")
-    (None, None, '前 15%')
+    >>> parse_gpa("2021/9 - 2025/6")
+    (None, None, None)
     """
     cleaned = clean(text)
 
-    ratio = re.search(r"(\d(?:\.\d+)?)\s*/\s*(\d(?:\.\d+)?)", cleaned)
-    if ratio:
-        return float(ratio.group(1)), float(ratio.group(2)), None
+    for match in _RATIO.finditer(cleaned):
+        gpa, scale = float(match.group(1)), float(match.group(2))
+        # 分母必须是合理满分制且分子不超过分母，否则多半是日期或排名
+        if scale in _GPA_SCALES and 0 < gpa <= scale:
+            return gpa, scale, None
 
     percent = re.search(r"(前\s*\d+(?:\.\d+)?\s*%)", cleaned)
     if percent:
         return None, None, percent.group(1).replace(" ", "")
 
-    score = re.search(
-        r"(?:GPA|绩点|平均分|均分)[:：]?\s*(\d{1,3}(?:\.\d+)?)", cleaned, re.IGNORECASE
-    )
-    if score:
+    if score := _GPA_LABEL.search(cleaned):
         value = float(score.group(1))
         # 大于 5 基本可以断定是百分制
         return value, (100.0 if value > 5 else None), None

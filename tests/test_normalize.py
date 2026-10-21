@@ -140,6 +140,24 @@ class TestGpa:
     def test_absent(self) -> None:
         assert parse_gpa("某某大学") == (None, None, None)
 
+    @pytest.mark.parametrize(
+        "raw",
+        [
+            "2021/9 - 2025/6",  # 日期：分子分母都被当成绩点，曾误判成 1.0/9.0
+            "2023.09 - 2027.06",
+            "排名 12/180",  # 排名：分母 180 不是合理满分制
+            "12/180",
+        ],
+    )
+    def test_not_a_gpa(self, raw: str) -> None:
+        assert parse_gpa(raw) == (None, None, None)
+
+    def test_ratio_preferred_over_ranking(self) -> None:
+        assert parse_gpa("GPA 3.62/4.0 排名 12/180") == (3.62, 4.0, None)
+
+    def test_five_point_scale(self) -> None:
+        assert parse_gpa("绩点 4.2/5.0") == (4.2, 5.0, None)
+
 
 class TestTextHelpers:
     def test_clean_keeps_chinese_punctuation(self) -> None:

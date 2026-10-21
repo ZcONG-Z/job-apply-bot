@@ -120,6 +120,16 @@ class TestParseEducation:
         assert educations[1].degree is Degree.bachelor
         assert educations[1].school == "某某学院"
 
+    def test_no_gpa_stays_empty(self) -> None:
+        """简历没写绩点时不能凭空造一个：日期里的 2021/9 曾被当成 1.0/9.0。"""
+        text = """教育经历
+2021/9 - 2025/6    某某职业技术学院    软件技术    大专
+"""
+        education = parse_resume(text).profile.educations[0]
+        assert education.start == "2021-09"
+        assert education.gpa is None
+        assert education.gpa_scale is None
+
 
 class TestParseExperience:
     def test_company_title_range(self) -> None:
