@@ -33,6 +33,9 @@
                                     ⏸  停在提交前
 ```
 
+> 上图是完整设计。其中**第一段已实现**（简历 → `profile.json`），后面填表部分只有设计文档。
+> 判断标准很简单：`jobapply apply` 现在会直接告诉你"尚未实现"。
+
 ## 它做什么 / 不做什么
 
 这个界线写在最前面，因为越界之后工具的性质就变了。
@@ -66,15 +69,14 @@
 
 ## 当前状态
 
-> **⚠️ 早期阶段：仓库当前是骨架与规范，尚无可运行代码。**
+> **可用部分：简历 → `profile.json`（Phase 0 已完成）。**
+> **未实现部分：浏览器填表（`apply`）。** 该命令会明确提示未实现，不会假装成功。
 >
-> 已完成：目录结构、数据模型设计、适配器规范、数据安全策略、贡献流程。
-> 进行中：Phase 0（简历解析与 `profile.json` 生成）。
-> 具体进度见 [docs/roadmap.md](docs/roadmap.md)。
+> 已实现：PDF/DOCX 文字抽取、字段归一化、规则解析、pydantic 校验、生成与逐项确认。
+> 128 个单元测试，CI 覆盖 Python 3.11/3.12/3.13 与 Windows。
+> 进度见 [docs/roadmap.md](docs/roadmap.md)，实现细节与设计取舍见 [docs/implementation-notes.md](docs/implementation-notes.md)。
 
-这个阶段欢迎的是**设计讨论**和**字段清单补充**——比如你遇到的某个系统问了哪些奇葩字段。这些信息比代码更稀缺。
-
-## 快速开始（Phase 0 完成后生效）
+## 快速开始
 
 ```bash
 git clone https://github.com/ZcONG-Z/job-apply-bot.git
@@ -83,21 +85,21 @@ cd job-apply-bot
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
-playwright install chromium
 
-# 1. 生成结构化简历
-cp profile.example.json profile.json
-jobapply profile build inbox/我的简历.pdf
+# 1. 从简历生成结构化数据（当前可用的部分）
+jobapply profile build 你的简历.pdf --out profile.json
 
-# 2. 确认字段（逐项 diff，可改可跳）
-jobapply profile review
+# 2. 校验格式
+jobapply profile validate -f profile.json
 
-# 3. 填表（浏览器会打开，填完停在提交前）
+# 3. 逐项确认高风险字段（出生日期、身份证、学校、起止时间）
+jobapply profile review -f profile.json
+
+# 4. 填表（Phase 1，尚未实现）
 jobapply apply https://app.mokahr.com/campus_apply/xxx
-
-# 4. 看投递台账
-jobapply status
 ```
+
+没有简历文件也能试：`python scripts/make_sample_resume.py --out tests/fixtures` 会生成一份虚构样本。
 
 ## 支持的站点
 

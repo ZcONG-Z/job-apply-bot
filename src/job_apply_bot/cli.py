@@ -1,17 +1,26 @@
 """命令行入口。
 
-当前阶段只提供命令骨架：`jobapply --help` 可用，具体子命令会在对应 Phase 实现。
-见 docs/roadmap.md。
+已实现：``profile build`` / ``profile validate`` / ``profile review``
+未实现：``apply`` / ``status`` / ``adapter *``（见 docs/roadmap.md）
 """
 
 from __future__ import annotations
 
+import json
+import sys
+from datetime import date
 from pathlib import Path
 
 import typer
+from pydantic import ValidationError
 from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
 from job_apply_bot import __version__
+from job_apply_bot.resume.extract import UnsupportedFormatError, extract_text
+from job_apply_bot.resume.parse import ParseResult, parse_resume
+from job_apply_bot.resume.schema import Profile
 
 console = Console()
 
@@ -27,6 +36,8 @@ adapter_app = typer.Typer(help="站点适配器的调试工具。", no_args_is_h
 
 app.add_typer(profile_app, name="profile")
 app.add_typer(adapter_app, name="adapter")
+
+DEFAULT_PROFILE = Path("profile.json")
 
 
 def _version_callback(value: bool) -> None:
@@ -55,52 +66,207 @@ def _todo(phase: str, module: str) -> None:
     raise typer.Exit(code=1)
 
 
-# --------------------------------------------------------------------------
-# profile
-# --------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# profile build
+# ---------------------------------------------------------------------------
+
+
+def _print_result(result: ParseResult) -> None:
+    profile = result.profile
+
+    table = Table(title="抽取结果", show_header=True, header_style="bold")
+    table.add_column("字段")
+    table.add_column("值")
+    table.add_column("来源")
+
+    def add(field_name: str, value: object, source: str = "regex") -> None:
+        shown = "—" if value in (None, "", []) else str(value)
+        table.add_row(field_name, f"[red]{shown}[/red]" if shown == "—" else shown, source)
+
+    add("姓名", profile.basic.name_cn)
+    add("性别", profile.basic.gender.value if profile.basic.gender else None)
+    add("出生日期", profile.basic.birth_date, "regex（零容忍）")
+    add("身份证", profile.basic.id_number, "regex（零容忍）")
+    add("手机", profile.contact.phone, "regex（零容忍）")
+    add("邮箱", profile.contact.email)
+    for index, education in enumerate(profile.educations):
+        label = "教育经历" if index == 0 else f"教育经历[{index}]"
+        add(f"{label} 学校", education.school, "regex（零容忍）")
+        add(f"{label} 专业", education.major)
+        add(
+            f"{label} 起止",
+            f"{education.start or '?'} ~ {education.end or '至今'}" if education.start else None,
+            "normalize（零容忍）",
+        )
+        add(f"{label} 绩点", education.gpa)
+    for index, experience in enumerate(profile.experiences):
+        add(f"经历[{index}] 单位", experience.company)
+        add(f"经历[{index}] 职位", experience.title)
+    if profile.skills.programming:
+        add("编程语言", "、".join(profile.skills.programming))
+
+    console.print(table)
+    if result.sections_found:
+        console.print(f"[dim]识别到的小节：{', '.join(result.sections_found)}[/dim]")
+
+
+def _print_warnings(result: ParseResult) -> None:
+    if not result.warnings:
+        return
+    body = "\n".join(f"  • {item}" for item in result.warnings)
+    console.print(Panel(body, title=f"需要你确认 {len(result.warnings)} 项", border_style="yellow"))
 
 
 @profile_app.command("build")
 def profile_build(
     source: Path = typer.Argument(..., help="简历文件（PDF / DOCX）。"),
-    out: Path = typer.Option(Path("profile.json"), "--out", "-o", help="输出路径。"),
-    llm: bool = typer.Option(
-        False, "--llm", help="规则解析失败时用大模型兜底（会把简历文本发出去）。"
-    ),
+    out: Path = typer.Option(DEFAULT_PROFILE, "--out", "-o", help="输出路径。"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="不询问，直接写入。"),
+    force: bool = typer.Option(False, "--force", help="覆盖已存在的输出文件。"),
 ) -> None:
-    """从简历文件生成 profile.json。"""
-    _ = (source, out, llm)
-    _todo("Phase 0", "resume/parse.py")
+    """从简历文件生成 profile.json 草稿。"""
+    try:
+        text = extract_text(source)
+    except (UnsupportedFormatError, FileNotFoundError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from exc
+
+    if not text.strip():
+        console.print("[red]文件里没有可提取的文字。扫描件需要先做 OCR。[/red]")
+        raise typer.Exit(code=1)
+
+    result = parse_resume(text)
+    _print_result(result)
+    _print_warnings(result)
+
+    missing = result.profile.missing_required()
+    if missing:
+        console.print(f"[yellow]仍缺少 {len(missing)} 个常用字段：[/yellow] {', '.join(missing)}")
+
+    if out.exists() and not force:
+        console.print(f"[red]{out} 已存在。[/red]用 --force 覆盖，或换个 --out 路径。")
+        raise typer.Exit(code=1)
+
+    if not yes:
+        console.print(
+            "\n[bold]写入前请核对上表。[/bold]"
+            "零容忍字段（出生日期、身份证、学校、起止时间）填错后很难在系统里改。"
+        )
+        if not typer.confirm(f"确认写入 {out}？", default=False):
+            console.print("已取消。")
+            raise typer.Exit(code=1)
+
+    result.profile.meta.source_file = source.name
+    result.profile.meta.updated_at = date.today().isoformat()
+    out.write_text(
+        json.dumps(result.profile.to_json_dict(), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    console.print(f"[green]已写入 {out}[/green]")
+    console.print(f"下一步：jobapply profile review -f {out}")
 
 
-@profile_app.command("review")
-def profile_review(
-    path: Path = typer.Option(Path("profile.json"), "--file", "-f", help="要确认的 profile 文件。"),
-) -> None:
-    """逐字段确认简历信息，支持修改与标记待补。"""
-    _ = path
-    _todo("Phase 0", "resume/review.py")
+# ---------------------------------------------------------------------------
+# profile validate / review
+# ---------------------------------------------------------------------------
+
+
+def _load_profile(path: Path) -> Profile:
+    if not path.exists():
+        console.print(f"[red]找不到 {path}[/red]")
+        raise typer.Exit(code=1)
+    try:
+        return Profile.model_validate_json(path.read_text(encoding="utf-8"))
+    except ValidationError as exc:
+        console.print(f"[red]{path} 不符合 schema：[/red]")
+        for error in exc.errors():
+            location = ".".join(str(part) for part in error["loc"])
+            console.print(f"  • {location}: {error['msg']}")
+        raise typer.Exit(code=1) from exc
 
 
 @profile_app.command("validate")
 def profile_validate(
-    path: Path = typer.Option(Path("profile.json"), "--file", "-f", help="要校验的 profile 文件。"),
+    path: Path = typer.Option(DEFAULT_PROFILE, "--file", "-f", help="要校验的 profile 文件。"),
 ) -> None:
     """校验 profile 是否符合 schema。"""
-    _ = path
-    _todo("Phase 0", "resume/schema.py")
+    profile = _load_profile(path)
+    missing = profile.missing_required()
+    console.print(f"[green]格式校验通过[/green]：{path}")
+    if missing:
+        console.print(f"[yellow]以下常用字段为空：[/yellow] {', '.join(missing)}")
+    else:
+        console.print("[green]常用字段齐全[/green]")
 
 
-# --------------------------------------------------------------------------
-# apply
-# --------------------------------------------------------------------------
+@profile_app.command("review")
+def profile_review(
+    path: Path = typer.Option(DEFAULT_PROFILE, "--file", "-f", help="要确认的 profile 文件。"),
+) -> None:
+    """逐项确认高风险字段。无法交互时只列出待确认项。"""
+    profile = _load_profile(path)
+    pending: list[tuple[str, object]] = [
+        ("basic.birth_date", profile.basic.birth_date),
+        ("basic.id_number", profile.basic.id_number),
+        ("basic.name_cn", profile.basic.name_cn),
+        ("contact.phone", profile.contact.phone),
+    ]
+    for index, education in enumerate(profile.educations):
+        pending.append((f"educations.{index}.school", education.school))
+        pending.append((f"educations.{index}.start", education.start))
+        pending.append((f"educations.{index}.end", education.end))
+
+    table = Table(title="待确认的高风险字段", header_style="bold")
+    table.add_column("路径")
+    table.add_column("当前值")
+    for key, value in pending:
+        table.add_row(key, "—" if value is None else str(value))
+    console.print(table)
+
+    if not sys.stdin.isatty():
+        console.print("[yellow]当前不是交互式终端，跳过逐项确认。[/yellow]")
+        console.print("请人工核对上表，或用 --file 指定其他文件。")
+        return
+
+    console.print("\n[bold]直接回车表示确认，输入新值则替换。[/bold]")
+    changed = 0
+    for key, value in pending:
+        answer = typer.prompt(f"{key} [{value}]", default="", show_default=False).strip()
+        if answer and answer != str(value):
+            _set_by_path(profile, key, answer)
+            changed += 1
+
+    if changed:
+        path.write_text(
+            json.dumps(profile.to_json_dict(), ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        console.print(f"[green]已更新 {changed} 个字段并写回 {path}[/green]")
+    else:
+        console.print("未做修改。")
+
+
+def _set_by_path(profile: Profile, path: str, value: str) -> None:
+    """按点路径写入字段。数字段自动转型，其余按字符串存。"""
+    parts = path.split(".")
+    target: object = profile
+    for part in parts[:-1]:
+        target = target[int(part)] if part.isdigit() else getattr(target, part)  # type: ignore[index]
+    last = parts[-1]
+    current = getattr(target, last)  # type: ignore[arg-type]
+    setattr(target, last, int(value) if isinstance(current, int) else value)
+
+
+# ---------------------------------------------------------------------------
+# 未实现
+# ---------------------------------------------------------------------------
 
 
 @app.command("apply")
 def apply(
     url: str = typer.Argument(..., help="网申页面地址。"),
     profile_path: Path = typer.Option(
-        Path("profile.json"), "--profile", "-p", help="使用的 profile 文件。"
+        DEFAULT_PROFILE, "--profile", "-p", help="使用的 profile 文件。"
     ),
     resume: Path | None = typer.Option(None, "--resume", "-r", help="上传用的简历原件。"),
     resume_run: bool = typer.Option(False, "--resume-run", help="从上次中断的步骤继续。"),
@@ -118,11 +284,6 @@ def status(
     """查看投递台账。"""
     _ = limit
     _todo("Phase 3", "ledger/db.py")
-
-
-# --------------------------------------------------------------------------
-# adapter
-# --------------------------------------------------------------------------
 
 
 @adapter_app.command("list")

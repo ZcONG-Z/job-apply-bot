@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "job-apply-bot"
-version = "0.1.0.dev0"
+version = "0.2.0"
 description = "把网申表单里那些重复录入的活交给脚本 —— 本地运行、半自动、永远停在提交前"
 readme = "README.md"
 license = { file = "LICENSE" }

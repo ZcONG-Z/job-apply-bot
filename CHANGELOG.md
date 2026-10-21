@@ -9,7 +9,35 @@
 
 ### Added
 
-- `docs/profile-schema.md`：`profile.json` 全字段说明与格式约定
+- `docs/implementation-notes.md`：Phase 0 的实现细节、设计取舍与实测修复记录
+
+## [0.2.0] - 2026-10-21
+
+**第一个可运行版本：简历 → `profile.json`。填表链路仍未实现。**
+
+### Added
+
+- `resume/extract.py`：PDF（PyMuPDF）与 DOCX（python-docx）文本抽取，保留段落与表格顺序；
+  旧版 `.doc` 给出可操作的报错而非静默失败
+- `resume/normalize.py`：月份、时间段、手机号、邮箱、学历、性别、绩点的归一化
+- `resume/parse.py`：按小节切块的规则解析，含"无标签时按词序推断专业/职位"的版面启发式；
+  每一处不确定都写入 warnings
+- `resume/schema.py`：pydantic 数据模型与校验（身份证、手机号、月份格式、起止先后、绩点上限）
+- `profile build` / `profile validate` / `profile review` 三个命令实际可用
+- `scripts/make_sample_resume.py`：生成虚构样本简历（DOCX + PDF）
+- 108 个新测试：`test_normalize.py`、`test_schema.py`、`test_parse.py`
+
+### Fixed
+
+- 全角归一化误把中文逗号转成半角：不再使用 `NFKC`，改为精确字符映射
+- 身份证末位小写 `x` 未转大写：脱敏字符集误含 `x/X`，导致校验被跳过
+- 公司名被截断（如"某某科技"）：正则懒惰量词 + 不当后缀导致，改为贪婪匹配
+- `【教育背景】` 等带装饰字符的小节标题无法识别
+
+### Changed
+
+- 枚举类改用 `StrEnum`（需要 Python 3.11+）
+- README 状态说明更新：明确区分"已实现"与"仅有设计"
 
 ## [0.1.0] - 2026-10-21
 
@@ -32,5 +60,6 @@
 - 明确三条项目边界：不绕过验证码、不代提交、不做反检测对抗
 - 许可证选定 MIT
 
-[Unreleased]: https://github.com/ZcONG-Z/job-apply-bot/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ZcONG-Z/job-apply-bot/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ZcONG-Z/job-apply-bot/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ZcONG-Z/job-apply-bot/releases/tag/v0.1.0

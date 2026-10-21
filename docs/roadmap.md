@@ -2,7 +2,7 @@
 
 状态说明：✅ 完成 · 🚧 进行中 · 📋 计划中 · 💡 想法，未排期
 
-当前：**v0.1.0 — 骨架与规范阶段，无可运行代码。**
+当前：**v0.2.0 — Phase 0 完成，简历可解析成 `profile.json`。填表链路未实现。**
 
 ---
 
@@ -10,18 +10,21 @@
 
 目标：丢一份简历进来，得到一份能用的 `profile.json`。
 
-- [x] `profile.json` 字段设计（见 [profile-schema.md](profile-schema.md)）
-- [x] 项目骨架、打包配置、`jobapply` 入口
-- [ ] 📋 `resume/extract.py` — PDF（PyMuPDF）与 DOCX（python-docx）文本抽取，保留段落顺序
-- [ ] 📋 `resume/parse.py` — 规则解析：正则 + 版面启发式，覆盖规整排版的简历
-- [ ] 📋 `resume/parse.py` — LLM 兜底：规则失败时调用模型补全（可选依赖，默认关闭）
-- [ ] 📋 `resume/normalize.py` — 日期、绩点、学历枚举、手机号、全半角归一化
-- [ ] 📋 `resume/review.py` — 终端逐字段 diff 确认，支持修改、跳过、标记待补
-- [ ] 📋 `tests/fixtures/` — 3 份脱敏简历样本（单栏 / 双栏 / 带表格）
+- [x] ✅ `profile.json` 字段设计（见 [profile-schema.md](profile-schema.md)）
+- [x] ✅ 项目骨架、打包配置、`jobapply` 入口
+- [x] ✅ `resume/extract.py` — PDF（PyMuPDF）与 DOCX（python-docx）文本抽取，保留段落顺序
+- [x] ✅ `resume/normalize.py` — 日期、绩点、学历枚举、手机号、全半角归一化
+- [x] ✅ `resume/schema.py` — pydantic 模型与校验
+- [x] ✅ `resume/parse.py` — 规则解析：小节切分 + 正则 + 版面启发式
+- [x] ✅ `profile build` / `validate` / `review` 三个命令
+- [x] ✅ `tests/fixtures/` — 虚构样本简历（DOCX + PDF），由 `scripts/make_sample_resume.py` 生成
+- [ ] 📋 LLM 兜底：规则失败时调用模型补全（可选依赖，默认关闭）
+- [ ] 📋 补充真实脱敏简历样本（双栏、带表格、扫描版）
 
 **验收**：真实简历跑 `jobapply profile build`，非空字段准确率 ≥ 95%；身份证、手机、毕业年月零错误。
 
-> `normalize.py` 是这一阶段的重点。80% 的填错都源于格式没归一，而不是解析没抽到。
+> 当前 128 个测试通过。在构造样本上字段级准确率 100%，但样本规模不足以支撑"真实简历准确率"的结论——
+> 缺口在于脱敏样本数量，不在规则覆盖。
 
 ## Phase 1 · 打通一个站点
 
