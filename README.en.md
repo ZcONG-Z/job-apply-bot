@@ -46,4 +46,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-[MIT](LICENSE) © 2026 Zhou Cong
+[MIT](LICENSE) © 2026 ZcONG-Z
