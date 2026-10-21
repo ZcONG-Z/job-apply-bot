@@ -176,4 +176,4 @@ steps:
 
 ## License
 
-[MIT](LICENSE) © 2026 Zhou Cong
+[MIT](LICENSE)
