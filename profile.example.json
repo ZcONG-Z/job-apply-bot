@@ -1,0 +1,103 @@
+{
+  "_readme": "这是示例文件，所有内容均为虚构。复制为 profile.json 后替换成你自己的信息（profile.json 已被 .gitignore 忽略，不会提交）。字段说明见 docs/profile-schema.md。",
+  "meta": {
+    "version": 1,
+    "updated_at": "2026-10-21",
+    "source_file": "sample-resume.pdf"
+  },
+  "basic": {
+    "name_cn": "张三",
+    "name_en": "Zhang San",
+    "gender": "male",
+    "birth_date": "2003-04-15",
+    "id_number": "310101********1234",
+    "political_status": "共青团员",
+    "hometown": "江苏省南京市",
+    "household": "江苏省南京市",
+    "marital_status": "single",
+    "health": "良好",
+    "height_cm": 175
+  },
+  "contact": {
+    "phone": "13800138000",
+    "email": "zhangsan@example.com",
+    "wechat": "zhangsan_wx",
+    "current_city": "上海市",
+    "address": "上海市杨浦区某某路 100 号",
+    "postal_code": "200093"
+  },
+  "job_intent": {
+    "target_role": "后端开发工程师",
+    "target_city": ["上海", "杭州", "深圳"],
+    "job_type": "campus",
+    "available_date": "2027-07-01",
+    "expected_salary": null,
+    "accept_relocation": true,
+    "accept_shift": false
+  },
+  "educations": [
+    {
+      "degree": "bachelor",
+      "school": "某某大学",
+      "school_en": "XX University",
+      "major": "计算机科学与技术",
+      "start": "2023-09",
+      "end": "2027-06",
+      "gpa": 3.62,
+      "gpa_scale": 4.0,
+      "gpa_percent": "前 15%",
+      "ranking": "12/180",
+      "city": "上海",
+      "is_full_time": true,
+      "courses": ["数据结构", "操作系统", "计算机网络"]
+    }
+  ],
+  "experiences": [
+    {
+      "kind": "internship",
+      "company": "某某科技有限公司",
+      "department": "基础架构部",
+      "title": "后端开发实习生",
+      "start": "2026-07",
+      "end": "2026-09",
+      "city": "杭州",
+      "description": "负责订单服务重构，将核心接口 P99 从 420ms 降至 130ms。",
+      "achievements": ["主导缓存分层改造，QPS 由 800 提升至 3200"],
+      "leave_reason": "实习期结束"
+    }
+  ],
+  "projects": [
+    {
+      "name": "分布式任务调度平台",
+      "role": "负责人",
+      "start": "2025-09",
+      "end": "2026-01",
+      "tech": ["Go", "Raft", "etcd"],
+      "description": "支持百万级定时任务的调度与故障转移。",
+      "link": "https://github.com/example/xxx"
+    }
+  ],
+  "skills": {
+    "languages": [
+      { "name": "英语", "level": "CET-6", "score": 546 },
+      { "name": "日语", "level": "N2", "score": null }
+    ],
+    "programming": ["Python", "Go", "Java"],
+    "certificates": [{ "name": "软件设计师", "date": "2026-05" }],
+    "awards": [{ "name": "国家励志奖学金", "date": "2025-10", "level": "国家级" }]
+  },
+  "family": [
+    {
+      "relation": "father",
+      "name": "张某某",
+      "phone": "13900139000",
+      "employer": "某某单位",
+      "title": "工程师"
+    }
+  ],
+  "custom": {},
+  "answers": {
+    "self_intro": null,
+    "why_company": null
+  }
+}

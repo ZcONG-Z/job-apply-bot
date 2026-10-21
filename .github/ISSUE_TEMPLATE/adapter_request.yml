@@ -1,0 +1,51 @@
+name: 适配器需求 / 站点支持
+description: 希望支持某个网申系统
+title: "[adapter] "
+labels: ["adapter", "enhancement"]
+body:
+  - type: input
+    id: site
+    attributes:
+      label: 系统名称
+      placeholder: 北森招聘云
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: URL 模式
+      description: 用通配符表示即可，不要贴含个人 token 的完整链接
+      placeholder: "*.zhiye.com/*, *.italent.cn/*"
+    validations:
+      required: true
+  - type: textarea
+    id: coverage
+    attributes:
+      label: 覆盖范围
+      description: 这个系统有多少公司在用？你遇到了几家？
+      placeholder: 校招季大概遇到 5 家，都是这个系统
+  - type: dropdown
+    id: willingness
+    attributes:
+      label: 你能提供什么
+      options:
+        - 我可以写这个适配器（需要指导）
+        - 我可以提供脱敏的页面 HTML 快照
+        - 我可以提供字段清单
+        - 我只能提需求
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: 其他说明
+      description: 特殊控件、已知难点、是否有验证码等
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 确认
+      options:
+        - label: 我已确认以上内容不含真实个人数据
+          required: true
+        - label: 我已搜索过现有 Issue 和 docs/roadmap.md，没有重复
+          required: true

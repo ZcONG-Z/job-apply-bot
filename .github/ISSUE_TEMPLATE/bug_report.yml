@@ -1,0 +1,80 @@
+name: 缺陷报告
+description: 适配器失效、填写错误、崩溃等
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **提交前请确认：截图、DOM 片段、日志里没有你的真实个人信息。**
+        姓名换成「张三」，手机换成 `13800138000`，公司学校换成「某某」。
+        如果涉及敏感数据，请用虚构数据复现后再贴。
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 发生了什么
+      description: 期望的行为，以及实际发生的行为
+      placeholder: |
+        期望：教育经历的开始时间填成 2023-09
+        实际：填成了 2023-08
+    validations:
+      required: true
+  - type: dropdown
+    id: site
+    attributes:
+      label: 涉及哪个站点
+      options:
+        - Moka
+        - 北森 Beisen
+        - 牛客 NowCoder
+        - 其他（在下方补充 URL 结构）
+        - 与具体站点无关
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: 页面地址（脱敏后的 URL 模式即可）
+      placeholder: https://app.mokahr.com/campus_apply/xxxx
+  - type: dropdown
+    id: phase
+    attributes:
+      label: 出问题的环节
+      options:
+        - 简历解析 / profile 生成
+        - 字段定位（找不到元素）
+        - 填值（找到了但填不对）
+        - 回读校验
+        - 附件上传
+        - 登录 / 会话
+        - 命令行 / 安装
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志或核对报告
+      description: 优先贴 `runs/<...>/verify_report.md` 和 run.log 里相关的部分
+      render: shell
+  - type: textarea
+    id: dom
+    attributes:
+      label: 相关 DOM 结构（脱敏）
+      description: 定位失败时，贴出错元素附近的 HTML 结构和它的父级，用 devtools 复制
+      render: html
+  - type: input
+    id: env
+    attributes:
+      label: 环境
+      placeholder: Windows 11 / Python 3.12 / Chromium 130
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 确认
+      options:
+        - label: 我已确认以上内容不含真实个人数据
+          required: true
+        - label: 我已搜索过现有 Issue，没有重复
+          required: true

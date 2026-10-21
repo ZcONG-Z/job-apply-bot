@@ -1,0 +1,88 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "job-apply-bot"
+version = "0.1.0.dev0"
+description = "把网申表单里那些重复录入的活交给脚本 —— 本地运行、半自动、永远停在提交前"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+authors = [{ name = "Zhou Cong", email = "YOUR_EMAIL" }]
+keywords = ["resume", "job-application", "form-filling", "playwright", "automation"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: Chinese (Simplified)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business",
+]
+dependencies = [
+    "playwright>=1.47",
+    "pydantic>=2.7",
+    "typer>=0.12",
+    "rich>=13.7",
+    "pyyaml>=6.0",
+    "pymupdf>=1.24",
+    "python-docx>=1.1",
+]
+
+[project.optional-dependencies]
+llm = ["anthropic>=0.34"]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "pre-commit>=3.7",
+]
+
+[project.scripts]
+jobapply = "job_apply_bot.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/YOUR_GITHUB_NAME/job-apply-bot"
+Issues = "https://github.com/YOUR_GITHUB_NAME/job-apply-bot/issues"
+Documentation = "https://github.com/YOUR_GITHUB_NAME/job-apply-bot/tree/main/docs"
+Changelog = "https://github.com/YOUR_GITHUB_NAME/job-apply-bot/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/job_apply_bot"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+# Typer 要求把 typer.Option / typer.Argument 直接写在函数签名里作为默认值，
+# 这是框架的约定，不是可优化的函数调用。
+"src/job_apply_bot/cli.py" = ["B008"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+    "integration: 需要真实浏览器或网络，默认不跑",
+]
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_ignores = true
+warn_redundant_casts = true
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*"]

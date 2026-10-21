@@ -1,0 +1,69 @@
+name: 字段情报
+description: 报告某个网申系统问了哪些字段（不需要写代码）
+title: "[field] "
+labels: ["field-intel", "good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这类情报比代码更稀缺。`profile.json` 的覆盖面完全取决于真实的字段清单——
+        漏一个字段，整套流程就在那一步断掉。
+
+        **请不要贴真实个人信息**，字段名和控件类型就够了。
+  - type: input
+    id: company
+    attributes:
+      label: 哪家公司 / 哪个系统
+      placeholder: 某某科技（Moka 系统）
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: 投递类型
+      options:
+        - 校招
+        - 实习
+        - 社招
+    validations:
+      required: true
+  - type: textarea
+    id: unexpected
+    attributes:
+      label: 想不到的字段
+      description: 重点填这些。常规的姓名手机不用写。
+      placeholder: |
+        - 是否独生子女（单选）
+        - 紧急联系人姓名 / 关系 / 电话
+        - 身高体重（数字，cm/kg）
+        - 父母工作单位及职务
+        - 高考分数与生源地
+        - 是否服从调剂（单选）
+        - 是否有亲属在本单位任职（单选，选是则展开填写）
+    validations:
+      required: true
+  - type: textarea
+    id: structure
+    attributes:
+      label: 表单结构
+      description: 分几步？每步大致包含什么？有没有动态增删的块？
+      placeholder: |
+        步骤：基本信息 → 教育经历 → 实习经历 → 附件 → 问卷
+        教育经历、实习经历支持「新增一条」
+    validations:
+      required: true
+  - type: textarea
+    id: tricky
+    attributes:
+      label: 反人类的控件
+      description: 选择器特别难写的那种，描述一下交互即可
+      placeholder: |
+        籍贯是三级联动，省市区必须逐级选，且市级选项要等 1 秒才加载
+        绩点输入框限制了只能输一位小数
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 确认
+      options:
+        - label: 我已确认以上内容不含真实个人数据
+          required: true
