@@ -58,7 +58,7 @@ CI 还有一道自动检查（`scripts/guard_personal_data.py`），但它只能
 ## 开发环境
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_NAME/job-apply-bot.git
+git clone https://github.com/ZcONG-Z/job-apply-bot.git
 cd job-apply-bot
 
 python -m venv .venv

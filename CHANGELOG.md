@@ -32,5 +32,5 @@
 - 明确三条项目边界：不绕过验证码、不代提交、不做反检测对抗
 - 许可证选定 MIT
 
-[Unreleased]: https://github.com/YOUR_GITHUB_NAME/job-apply-bot/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/YOUR_GITHUB_NAME/job-apply-bot/releases/tag/v0.1.0
+[Unreleased]: https://github.com/ZcONG-Z/job-apply-bot/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/ZcONG-Z/job-apply-bot/releases/tag/v0.1.0

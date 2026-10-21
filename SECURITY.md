@@ -4,8 +4,8 @@
 
 **不要开公开 Issue。** 涉及凭据泄露、任意代码执行、个人数据外泄的问题，请走以下任一渠道：
 
-- GitHub 的 [Private vulnerability reporting](https://github.com/YOUR_GITHUB_NAME/job-apply-bot/security/advisories/new)
-- 邮件：YOUR_EMAIL
+- GitHub 的 [Private vulnerability reporting](https://github.com/ZcONG-Z/job-apply-bot/security/advisories/new)
+- 或通过 GitHub 私信 [@ZcONG-Z](https://github.com/ZcONG-Z)
 
 请在报告中包含：复现步骤、影响范围、你的环境（OS / Python 版本 / 浏览器版本）。如果涉及敏感数据，请用虚构数据复现。
 

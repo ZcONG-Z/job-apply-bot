@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: 安全漏洞
-    url: https://github.com/YOUR_GITHUB_NAME/job-apply-bot/security/advisories/new
+    url: https://github.com/ZcONG-Z/job-apply-bot/security/advisories/new
     about: 请勿公开披露。凭据泄露、数据外泄等问题请走私密报告渠道。
   - name: 使用问题 / 讨论
-    url: https://github.com/YOUR_GITHUB_NAME/job-apply-bot/discussions
+    url: https://github.com/ZcONG-Z/job-apply-bot/discussions
     about: 安装、配置、"这样填对不对"之类的问题请走讨论区，不要开 Issue。
   - name: 数据泄露应急处理
-    url: https://github.com/YOUR_GITHUB_NAME/job-apply-bot/blob/main/SECURITY.md
+    url: https://github.com/ZcONG-Z/job-apply-bot/blob/main/SECURITY.md
     about: 如果误把简历或个人数据提交了，先看这份文档的处置步骤。

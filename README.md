@@ -77,7 +77,7 @@
 ## 快速开始（Phase 0 完成后生效）
 
 ```bash
-git clone https://github.com/YOUR_NAME/job-apply-bot.git
+git clone https://github.com/ZcONG-Z/job-apply-bot.git
 cd job-apply-bot
 
 python -m venv .venv

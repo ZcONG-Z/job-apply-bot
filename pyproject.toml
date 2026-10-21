@@ -9,7 +9,7 @@ description = "把网申表单里那些重复录入的活交给脚本 —— 本
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
-authors = [{ name = "Zhou Cong", email = "YOUR_EMAIL" }]
+authors = [{ name = "Zhou Cong", email = "302527284+ZcONG-Z@users.noreply.github.com" }]
 keywords = ["resume", "job-application", "form-filling", "playwright", "automation"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
@@ -47,10 +47,10 @@ dev = [
 jobapply = "job_apply_bot.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/YOUR_GITHUB_NAME/job-apply-bot"
-Issues = "https://github.com/YOUR_GITHUB_NAME/job-apply-bot/issues"
-Documentation = "https://github.com/YOUR_GITHUB_NAME/job-apply-bot/tree/main/docs"
-Changelog = "https://github.com/YOUR_GITHUB_NAME/job-apply-bot/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/ZcONG-Z/job-apply-bot"
+Issues = "https://github.com/ZcONG-Z/job-apply-bot/issues"
+Documentation = "https://github.com/ZcONG-Z/job-apply-bot/tree/main/docs"
+Changelog = "https://github.com/ZcONG-Z/job-apply-bot/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/job_apply_bot"]
