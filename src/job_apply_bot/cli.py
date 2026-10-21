@@ -229,32 +229,61 @@ def profile_review(
         return
 
     console.print("\n[bold]直接回车表示确认，输入新值则替换。[/bold]")
-    changed = 0
+    edits: dict[str, str] = {}
     for key, value in pending:
         answer = typer.prompt(f"{key} [{value}]", default="", show_default=False).strip()
         if answer and answer != str(value):
-            _set_by_path(profile, key, answer)
-            changed += 1
+            edits[key] = answer
 
-    if changed:
-        path.write_text(
-            json.dumps(profile.to_json_dict(), ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        console.print(f"[green]已更新 {changed} 个字段并写回 {path}[/green]")
-    else:
+    if not edits:
         console.print("未做修改。")
+        return
+
+    try:
+        profile = apply_edits(profile, edits)
+    except ValidationError as exc:
+        console.print("[red]修改后的值不符合 schema，未写回文件：[/red]")
+        for error in exc.errors():
+            location = ".".join(str(part) for part in error["loc"])
+            console.print(f"  • {location}: {error['msg']}")
+        raise typer.Exit(code=1) from exc
+
+    path.write_text(
+        json.dumps(profile.to_json_dict(), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    console.print(f"[green]已更新 {len(edits)} 个字段并写回 {path}[/green]")
 
 
-def _set_by_path(profile: Profile, path: str, value: str) -> None:
-    """按点路径写入字段。数字段自动转型，其余按字符串存。"""
+def _set_in_dict(data: dict[str, object], path: str, value: str) -> None:
+    """在纯 dict 上按点路径赋值。"""
     parts = path.split(".")
-    target: object = profile
+    target: object = data
     for part in parts[:-1]:
-        target = target[int(part)] if part.isdigit() else getattr(target, part)  # type: ignore[index]
+        target = (
+            target[int(part)] if isinstance(target, list) else target.setdefault(part, {})  # type: ignore[union-attr]
+        )
     last = parts[-1]
-    current = getattr(target, last)  # type: ignore[arg-type]
-    setattr(target, last, int(value) if isinstance(current, int) else value)
+    if isinstance(target, list):
+        target[int(last)] = value
+    else:
+        target[last] = value  # type: ignore[index]
+
+
+def apply_edits(profile: Profile, edits: dict[str, str]) -> Profile:
+    """按 ``{点路径: 新值}`` 修改并重新校验。
+
+    不在模型对象上直接 ``setattr``：pydantic 默认不在属性赋值时校验，
+    把字符串塞进 ``birth_date`` 这种日期字段会让模型内部出现错误类型
+    （序列化时还会报警告）。正确做法是先在纯 dict 上改，再整体校验一次，
+    让类型转换和约束统一生效。
+
+    校验失败抛 ``ValidationError``，调用方负责提示，且不要写入磁盘。
+    """
+    data = profile.to_json_dict()
+    for path, value in edits.items():
+        _set_in_dict(data, path, value)
+    return Profile.model_validate(data)
 
 
 # ---------------------------------------------------------------------------
