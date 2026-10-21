@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>网申表单测试页（虚构）</title>
+  <style>
+    body { font-family: sans-serif; max-width: 640px; margin: 24px auto; }
+    .field { margin: 14px 0; }
+    label, .field > span { display: inline-block; min-width: 90px; }
+    .options { border: 1px solid #ccc; padding: 4px 8px; display: none; position: absolute; background: #fff; }
+    .trigger { border: 1px solid #999; padding: 4px 8px; display: inline-block; cursor: pointer; min-width: 120px; }
+  </style>
+</head>
+<body>
+  <h1>基本信息（虚构测试表单）</h1>
+
+  <!-- 标准关联标签 -->
+  <div class="field">
+    <label for="name">姓名</label>
+    <input id="name" name="name" type="text">
+  </div>
+
+  <!-- 无关联标签：div 包 label 文本和 input -->
+  <div class="field">
+    <span>手机号码</span>
+    <input name="phone" type="text">
+  </div>
+
+  <!-- textarea -->
+  <div class="field">
+    <label for="intro">自我评价</label>
+    <textarea id="intro" name="intro" rows="3"></textarea>
+  </div>
+
+  <!-- contenteditable 富文本 -->
+  <div class="field">
+    <span>项目描述</span>
+    <div id="desc" contenteditable="true" style="border:1px solid #999; min-height:24px;"></div>
+  </div>
+
+  <!-- date input -->
+  <div class="field">
+    <label for="birth">出生日期</label>
+    <input id="birth" name="birth" type="date">
+  </div>
+
+  <!-- 原生 select -->
+  <div class="field">
+    <label for="degree">最高学历</label>
+    <select id="degree" name="degree">
+      <option value="">请选择</option>
+      <option value="bachelor">本科</option>
+      <option value="master">硕士</option>
+      <option value="phd">博士</option>
+    </select>
+  </div>
+
+  <!-- 自定义下拉（div + js） -->
+  <div class="field">
+    <span>期望城市</span>
+    <div class="custom-select">
+      <div id="city-trigger" class="trigger" tabindex="0">请选择</div>
+      <div id="city-options" class="options">
+        <div class="option" data-value="shanghai">上海</div>
+        <div class="option" data-value="beijing">北京</div>
+        <div class="option" data-value="shenzhen">深圳</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 单选 -->
+  <div class="field" id="gender-group">
+    <span>性别</span>
+    <label><input type="radio" name="gender" value="male"> 男</label>
+    <label><input type="radio" name="gender" value="female"> 女</label>
+  </div>
+
+  <!-- 复选框 -->
+  <div class="field">
+    <span>可到岗</span>
+    <label><input type="checkbox" id="accept" name="accept"> 服从调剂</label>
+  </div>
+
+  <!-- 文件上传（隐藏 input，模拟真实网申） -->
+  <div class="field">
+    <span>简历附件</span>
+    <input id="resume-file" name="resume_file" type="file" style="display:none;">
+    <button type="button" onclick="document.getElementById('resume-file').click()">上传简历</button>
+  </div>
+
+  <script>
+    var trig = document.getElementById('city-trigger');
+    var opts = document.getElementById('city-options');
+    trig.addEventListener('click', function () {
+      opts.style.display = opts.style.display === 'block' ? 'none' : 'block';
+    });
+    opts.querySelectorAll('.option').forEach(function (o) {
+      o.addEventListener('click', function () {
+        trig.textContent = o.textContent;
+        trig.dataset.value = o.dataset.value;
+        opts.style.display = 'none';
+      });
+    });
+  </script>
+</body>
+</html>
