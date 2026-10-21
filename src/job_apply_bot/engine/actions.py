@@ -16,7 +16,7 @@ from pathlib import Path
 
 from playwright.sync_api import Locator, Page
 
-from job_apply_bot.engine.locator import find_field
+from job_apply_bot.engine.locator import FieldNotFoundError, find_field
 
 
 class ActionError(RuntimeError):
@@ -86,6 +86,24 @@ def read_back(locator: Locator) -> str | None:
     return locator.evaluate("el => (el.innerText || el.textContent || '').trim()")
 
 
+def _locate_field(page: Page, field: Mapping, field_type: str, labels: list[str]) -> Locator:
+    """定位字段控件。
+
+    自定义下拉（custom_select）常见纯 div 结构——页面上根本没有 input 元素，
+    「字段」就是触发器本身，按 label 找输入框必然失败；此时退化为
+    ``trigger`` / ``selector`` 指向的元素。其它类型定位失败照常抛出。
+    """
+    try:
+        return find_field(page, labels, name=field.get("name"), selector=field.get("selector"))
+    except FieldNotFoundError:
+        if field_type != "custom_select":
+            raise
+        fallback = field.get("trigger") or field.get("selector")
+        if not fallback:
+            raise
+        return page.locator(fallback).first
+
+
 def fill_field(
     page: Page,
     field: Mapping,
@@ -96,7 +114,7 @@ def fill_field(
     """按字段类型填值，返回回读值（供核对）。field 是适配器里的一段字段声明。"""
     field_type = field.get("type", "text")
     labels = field.get("label") or []
-    locator = find_field(page, labels, name=field.get("name"), selector=field.get("selector"))
+    locator = _locate_field(page, field, field_type, labels)
 
     if field_type in ("text", "textarea", "date"):
         fill_text(locator, value)  # text/textarea 原生 fill；date input 直接填 YYYY-MM-DD
@@ -117,7 +135,9 @@ def fill_field(
         set_radio(page, labels, option_text)
     elif field_type == "checkbox":
         options = field.get("options") or {}
-        option_text = _pick_option_text(options, value)
+        # 仅当适配器显式配置了选项映射（复选框组按页面文字勾选）才走文字点击；
+        # 普通布尔复选框直接勾选/取消——否则值 "true" 会被误当成页面文案
+        option_text = _pick_option_text(options, value) if options else None
         checked = value not in ("false", "no", "否", "不接受", "不服从")
         set_checkbox(page, labels, checked, option_text)
     elif field_type == "upload":
